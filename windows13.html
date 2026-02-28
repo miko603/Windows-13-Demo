@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows 13</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+body { width:100vw; height:100vh; overflow:hidden; font-family:'Segoe UI',sans-serif; }
+#desktop { width:100%; height:100%; background:#1a1a2e; position:relative; overflow:hidden; }
+#wallpaper { position:absolute; inset:0; width:100%; height:100%; }
+
+/* DESKTOP ICONS */
+.desktop-icons { position:absolute; top:20px; left:20px; display:flex; flex-direction:column; gap:6px; z-index:10; }
+.icon { display:flex; flex-direction:column; align-items:center; width:80px; cursor:pointer; padding:6px; border-radius:8px; transition:background .15s; }
+.icon:hover { background:rgba(255,255,255,.15); }
+.icon:active { background:rgba(255,255,255,.25); }
+.icon span { color:white; font-size:11px; text-align:center; text-shadow:0 1px 3px rgba(0,0,0,.8); line-height:1.3; margin-top:4px; }
+.icon-svg { width:48px; height:48px; }
+
+/* TASKBAR */
+#taskbar { position:absolute; bottom:0; left:0; right:0; height:52px; background:rgba(20,20,35,.85); backdrop-filter:blur(20px); display:flex; align-items:center; justify-content:center; z-index:1000; border-top:1px solid rgba(255,255,255,.1); }
+#taskbar-center { display:flex; align-items:center; gap:6px; }
+.tb-btn { width:42px; height:42px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .15s; position:relative; }
+.tb-btn:hover { background:rgba(255,255,255,.15); }
+.tb-btn svg { width:24px; height:24px; }
+.tb-btn.active::after { content:''; position:absolute; bottom:3px; width:16px; height:3px; background:#6b9eff; border-radius:2px; }
+#taskbar-right { position:absolute; right:16px; display:flex; align-items:center; gap:8px; color:white; font-size:12px; }
+#clock .time { font-size:13px; font-weight:500; }
+#clock .date { font-size:11px; opacity:.7; }
+
+/* START MENU */
+#start-menu { position:absolute; bottom:60px; left:50%; transform:translateX(-50%); width:660px; height:520px; background:rgba(22,22,42,.97); backdrop-filter:blur(30px); border-radius:16px; border:1px solid rgba(255,255,255,.15); z-index:999; display:none; flex-direction:column; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+#start-menu.visible { display:flex; }
+#start-search { width:100%; padding:10px 16px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:8px; color:white; font-size:14px; outline:none; margin-bottom:20px; }
+#start-search::placeholder { color:rgba(255,255,255,.5); }
+.start-section-title { color:rgba(255,255,255,.6); font-size:12px; margin-bottom:12px; text-transform:uppercase; letter-spacing:.05em; }
+.start-apps { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
+.start-app { display:flex; flex-direction:column; align-items:center; padding:10px 4px; border-radius:10px; cursor:pointer; transition:background .15s; }
+.start-app:hover { background:rgba(255,255,255,.15); }
+.start-app span { color:white; font-size:10px; margin-top:6px; text-align:center; }
+
+/* WINDOWS */
+.win { position:absolute; background:#1e1e2e; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.7); border:1px solid rgba(255,255,255,.1); display:none; flex-direction:column; overflow:hidden; z-index:100; min-width:400px; min-height:300px; }
+.win.visible { display:flex; }
+.win-titlebar { height:38px; background:rgba(30,30,50,.95); display:flex; align-items:center; padding:0 12px; cursor:move; flex-shrink:0; border-bottom:1px solid rgba(255,255,255,.08); }
+.win-title { color:white; font-size:13px; flex:1; margin-left:8px; }
+.win-controls { display:flex; gap:8px; }
+.win-btn { width:14px; height:14px; border-radius:50%; cursor:pointer; border:none; transition:opacity .15s; }
+.win-btn:hover { opacity:.75; }
+.win-btn.close { background:#ff5f57; }
+.win-btn.min { background:#febc2e; }
+.win-btn.max { background:#28c840; }
+.win-content { flex:1; overflow:hidden; position:relative; }
+.win-content.flex { display:flex; }
+
+/* BROWSER */
+.browser-bar { background:rgba(20,20,35,.9); padding:8px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid rgba(255,255,255,.08); flex-shrink:0; }
+.bnav { width:28px; height:28px; background:rgba(255,255,255,.1); border:none; border-radius:6px; color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:background .15s; }
+.bnav:hover { background:rgba(255,255,255,.2); }
+#url-bar { flex:1; padding:6px 12px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:20px; color:white; font-size:13px; outline:none; }
+#url-bar:focus { border-color:rgba(107,158,255,.6); }
+#browser-frame { width:100%; height:100%; border:none; background:white; display:none; }
+.browser-home { width:100%; height:100%; background:linear-gradient(135deg,#1a1a3e,#2a1a4e); display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; }
+.browser-home h2 { font-size:26px; margin-bottom:8px; }
+.browser-home p { opacity:.5; font-size:13px; }
+.quick-links { display:flex; gap:14px; margin-top:28px; flex-wrap:wrap; justify-content:center; }
+.qlink { background:rgba(255,255,255,.1); border-radius:12px; padding:14px 18px; text-align:center; cursor:pointer; transition:background .15s; color:white; min-width:75px; }
+.qlink:hover { background:rgba(255,255,255,.2); }
+.qlink div { font-size:22px; margin-bottom:5px; }
+.qlink span { font-size:11px; opacity:.7; }
+
+/* FILE EXPLORER */
+.files-sidebar { width:180px; background:rgba(15,15,30,.8); border-right:1px solid rgba(255,255,255,.08); padding:12px 0; flex-shrink:0; overflow-y:auto; }
+.files-content { flex:1; padding:16px; overflow-y:auto; }
+.sidebar-item { padding:8px 14px; color:rgba(255,255,255,.7); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; border-radius:6px; margin:2px 6px; transition:background .15s; }
+.sidebar-item:hover { background:rgba(255,255,255,.1); color:white; }
+.sidebar-item.active { background:rgba(107,158,255,.2); color:#6b9eff; }
+.file-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:12px; }
+.file-item { display:flex; flex-direction:column; align-items:center; padding:10px; border-radius:8px; cursor:pointer; transition:background .15s; color:white; }
+.file-item:hover { background:rgba(255,255,255,.1); }
+.file-item .fi { font-size:34px; margin-bottom:5px; }
+.file-item span { font-size:11px; text-align:center; opacity:.8; word-break:break-all; }
+
+/* SETTINGS */
+.settings-sidebar { width:200px; background:rgba(15,15,30,.8); border-right:1px solid rgba(255,255,255,.08); padding:12px 0; overflow-y:auto; }
+.settings-content { flex:1; padding:24px; overflow-y:auto; color:white; }
+.setting-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid rgba(255,255,255,.07); }
+.setting-label { font-size:14px; }
+.setting-desc { font-size:12px; opacity:.5; margin-top:2px; }
+.toggle { width:44px; height:24px; background:rgba(255,255,255,.2); border-radius:12px; position:relative; cursor:pointer; transition:background .2s; flex-shrink:0; }
+.toggle.on { background:#6b9eff; }
+.toggle::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:white; transition:transform .2s; }
+.toggle.on::after { transform:translateX(20px); }
+.settings-title { font-size:22px; font-weight:600; margin-bottom:20px; }
+
+/* ABOUT */
+.about-content { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:white; text-align:center; padding:30px; }
+.about-name { font-size:28px; font-weight:300; margin-bottom:4px; }
+.about-version { font-size:14px; opacity:.5; margin-bottom:20px; }
+.about-info { font-size:13px; opacity:.6; line-height:1.8; }
+
+/* NOTEPAD */
+#notepad-text { width:100%; height:100%; background:#1a1a2e; color:#e0e0f0; border:none; outline:none; padding:16px; font-size:14px; font-family:'Consolas',monospace; resize:none; line-height:1.6; }
+
+/* FEEDBACK */
+.feedback-content { padding:24px; color:white; }
+.feedback-content h3 { margin-bottom:12px; font-size:18px; }
+.feedback-content textarea { width:100%; height:140px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:8px; color:white; padding:12px; font-size:13px; resize:none; outline:none; margin-bottom:12px; font-family:inherit; }
+.feedback-content button { background:#6b9eff; color:white; border:none; padding:10px 24px; border-radius:8px; cursor:pointer; font-size:14px; }
+.feedback-content button:hover { background:#4a7aee; }
+
+/* NOTIFICATION */
+#notif { position:absolute; bottom:62px; right:16px; background:rgba(30,30,50,.97); border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:14px 16px; color:white; font-size:13px; z-index:9999; box-shadow:0 8px 30px rgba(0,0,0,.5); display:none; min-width:220px; }
+#notif.show { display:block; animation:slideIn .3s ease; }
+@keyframes slideIn { from { transform:translateX(80px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+
+/* CONTEXT MENU */
+#ctx-menu { position:absolute; background:rgba(25,25,45,.97); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,.15); border-radius:10px; padding:6px; z-index:5000; display:none; min-width:180px; box-shadow:0 8px 30px rgba(0,0,0,.5); }
+.ctx-item { padding:8px 14px; color:white; font-size:13px; border-radius:6px; cursor:pointer; transition:background .1s; }
+.ctx-item:hover { background:rgba(255,255,255,.15); }
+.ctx-sep { height:1px; background:rgba(255,255,255,.1); margin:4px 0; }
+
+/* ===================== GEOMETRY DASH GAME ===================== */
+#gd-win { top:50px; left:80px; width:900px; height:580px; }
+#gd-canvas-wrap { width:100%; height:100%; background:#000; position:relative; overflow:hidden; }
+#gd-canvas { display:block; width:100%; height:100%; }
+
+/* GD Menu overlay */
+#gd-menu {
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,#1a0a3e 0%,#2a0a5a 40%,#0a1a4a 100%);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  z-index:10;
+}
+#gd-menu h1 {
+  font-family:'Arial Black',sans-serif;
+  font-size:52px; color:#FFD700;
+  text-shadow:0 0 20px #ff8c00,0 0 40px #ff4400,4px 4px 0 #8B4513;
+  letter-spacing:2px; margin-bottom:8px;
+  animation:gdPulse 2s ease-in-out infinite;
+}
+@keyframes gdPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+#gd-menu .sub { color:#88bbff; font-size:14px; margin-bottom:40px; opacity:.8; }
+.gd-btn {
+  background:linear-gradient(180deg,#4CAF50,#2e7d32);
+  color:white; border:none; padding:14px 40px; font-size:18px;
+  border-radius:8px; cursor:pointer; margin:6px;
+  font-family:'Arial Black',sans-serif;
+  box-shadow:0 4px 0 #1b5e20,0 0 20px rgba(76,175,80,.4);
+  transition:transform .1s;
+  border:2px solid #81c784;
+}
+.gd-btn:hover { transform:translateY(-2px); }
+.gd-btn:active { transform:translateY(2px); box-shadow:0 2px 0 #1b5e20; }
+.gd-btn.blue { background:linear-gradient(180deg,#2196F3,#1565c0); box-shadow:0 4px 0 #0d47a1,0 0 20px rgba(33,150,243,.4); border-color:#64b5f6; }
+.gd-btn.orange { background:linear-gradient(180deg,#FF9800,#e65100); box-shadow:0 4px 0 #bf360c,0 0 20px rgba(255,152,0,.4); border-color:#ffcc02; }
+
+/* GD HUD */
+#gd-hud { position:absolute; top:10px; left:0; right:0; display:flex; justify-content:space-between; padding:0 16px; z-index:20; pointer-events:none; }
+#gd-score { color:white; font-size:18px; font-family:'Arial Black',sans-serif; text-shadow:2px 2px 4px black; }
+#gd-attempts { color:rgba(255,255,255,.6); font-size:13px; font-family:Arial,sans-serif; text-shadow:1px 1px 2px black; }
+#gd-percent { color:#FFD700; font-size:18px; font-family:'Arial Black',sans-serif; text-shadow:2px 2px 4px black; }
+
+/* GD Progress bar */
+#gd-progress-bar { position:absolute; top:0; left:0; right:0; height:5px; background:rgba(0,0,0,.3); z-index:20; }
+#gd-progress-fill { height:100%; background:linear-gradient(90deg,#4CAF50,#8BC34A); width:0%; transition:width .1s; }
+
+/* GD Death/Complete overlay */
+#gd-overlay {
+  position:absolute; inset:0; z-index:30;
+  display:none; flex-direction:column; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.7);
+}
+#gd-overlay.show { display:flex; }
+#gd-overlay h2 { font-family:'Arial Black',sans-serif; font-size:44px; text-shadow:0 0 20px currentColor; margin-bottom:16px; }
+#gd-overlay p { color:rgba(255,255,255,.7); font-size:14px; margin-bottom:24px; }
+
+/* Stars in GD menu */
+.gd-stars { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+.gd-star { position:absolute; background:white; border-radius:50%; animation:twinkle var(--d,2s) ease-in-out infinite; }
+@keyframes twinkle { 0%,100%{opacity:.3;transform:scale(1)} 50%{opacity:1;transform:scale(1.5)} }
+
+/* Particles */
+.gd-particle { position:absolute; border-radius:2px; pointer-events:none; animation:particle .6s ease-out forwards; }
+@keyframes particle { 0%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(0) translate(var(--tx),var(--ty)); } }
+
+::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.2); border-radius:3px; }
+</style>
+</head>
+<body>
+<div id="desktop">
+
+<!-- WALLPAPER -->
+<svg id="wallpaper" viewBox="0 0 1500 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1500" height="900" fill="#1c1b2e"/>
+  <rect x="-80" y="600" width="320" height="320" rx="80" fill="#1e90ff" opacity=".9" transform="rotate(-30 80 700)"/>
+  <rect x="60" y="680" width="280" height="280" rx="70" fill="#0066dd" opacity=".85" transform="rotate(-20 160 800)"/>
+  <rect x="180" y="560" width="220" height="550" rx="100" fill="#40b0ff" opacity=".75" transform="rotate(-15 250 750)"/>
+  <rect x="300" y="700" width="180" height="300" rx="80" fill="#2277ee" opacity=".85" transform="rotate(-35 350 820)"/>
+  <rect x="100" y="-60" width="400" height="350" rx="100" fill="#8855ee" opacity=".7" transform="rotate(15 250 120)"/>
+  <rect x="220" y="-100" width="350" height="300" rx="90" fill="#aa77ff" opacity=".65" transform="rotate(20 380 80)"/>
+  <rect x="1100" y="-80" width="350" height="320" rx="90" fill="#cc44aa" opacity=".75" transform="rotate(-10 1250 100)"/>
+  <rect x="1000" y="-40" width="300" height="280" rx="80" fill="#e060cc" opacity=".65" transform="rotate(-20 1150 80)"/>
+  <rect x="1200" y="60" width="250" height="400" rx="90" fill="#dd55bb" opacity=".55" transform="rotate(10 1300 200)"/>
+  <rect x="1100" y="600" width="300" height="280" rx="80" fill="#ff6699" opacity=".6" transform="rotate(20 1200 720)"/>
+  <rect x="1250" y="550" width="250" height="320" rx="80" fill="#cc4488" opacity=".7" transform="rotate(15 1350 680)"/>
+  <rect x="1050" y="750" width="350" height="200" rx="70" fill="#e0559a" opacity=".65" transform="rotate(-10 1200 830)"/>
+  <rect x="1300" y="300" width="280" height="280" rx="90" fill="#9966dd" opacity=".5" transform="rotate(5 1420 420)"/>
+</svg>
+
+<!-- DESKTOP ICONS -->
+<div class="desktop-icons">
+  <div class="icon" ondblclick="openWindow('files-win')">
+    <svg class="icon-svg" viewBox="0 0 48 48"><rect x="2" y="8" width="20" height="14" rx="3" fill="#4da6ff"/><rect x="2" y="20" width="44" height="22" rx="3" fill="#5bb8ff"/><rect x="2" y="20" width="44" height="5" rx="1" fill="#3a90ee"/></svg>
+    <span>This PC</span>
+  </div>
+  <div class="icon" ondblclick="openWindow('settings-win')">
+    <svg class="icon-svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="8" fill="#9090bb" stroke="#bbbbdd" stroke-width="2"/><path d="M24 4v6M24 38v6M4 24h6M38 24h6M9.4 9.4l4.2 4.2M34.4 34.4l4.2 4.2M9.4 38.6l4.2-4.2M34.4 13.6l4.2-4.2" stroke="#bbbbdd" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="24" r="15" fill="none" stroke="#8888aa" stroke-width="4" stroke-dasharray="6 4"/></svg>
+    <span>Setting</span>
+  </div>
+  <div class="icon" ondblclick="openWindow('about-win')">
+    <svg class="icon-svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="#3377dd" stroke="#5599ff" stroke-width="1.5"/><rect x="21" y="20" width="6" height="14" rx="2" fill="white"/><circle cx="24" cy="14" r="3" fill="white"/></svg>
+    <span>About Windows 13</span>
+  </div>
+  <div class="icon" ondblclick="openWindow('browser-win')">
+    <svg class="icon-svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="#0f4fa8"/><path d="M24 3C18 9 15 16 15 24s3 15 9 21" stroke="#90caf9" stroke-width="2.5" fill="none"/><path d="M24 3C30 9 33 16 33 24s-3 15-9 21" stroke="#90caf9" stroke-width="2.5" fill="none"/><path d="M3 24h42M6 14h36M6 34h36" stroke="#90caf9" stroke-width="1.8"/><circle cx="33" cy="13" r="9" fill="#d32f2f"/><path d="M29.5 13l2.5 2.5 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    <span>Microsoft Edge</span>
+  </div>
+  <!-- GEOMETRY DASH ICON on desktop -->
+  <div class="icon" ondblclick="openWindow('gd-win')">
+    <svg class="icon-svg" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <!-- Background circle with gradient effect -->
+      <defs>
+        <radialGradient id="gd-bg" cx="40%" cy="30%">
+          <stop offset="0%" stop-color="#ff6b35"/>
+          <stop offset="60%" stop-color="#e63000"/>
+          <stop offset="100%" stop-color="#8b1a00"/>
+        </radialGradient>
+        <radialGradient id="gd-shine" cx="30%" cy="20%">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.5)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </radialGradient>
+      </defs>
+      <!-- Main background -->
+      <rect x="2" y="2" width="44" height="44" rx="10" fill="url(#gd-bg)"/>
+      <!-- Shine -->
+      <rect x="2" y="2" width="44" height="22" rx="10" fill="url(#gd-shine)"/>
+      <!-- Dark bottom -->
+      <rect x="2" y="30" width="44" height="16" rx="6" fill="rgba(0,0,0,0.3)"/>
+      <!-- Ground line -->
+      <rect x="4" y="34" width="40" height="3" rx="1.5" fill="#FFD700" opacity="0.9"/>
+      <!-- Player cube - spiky icon -->
+      <rect x="8" y="20" width="14" height="14" rx="2" fill="#FFD700"/>
+      <rect x="10" y="22" width="10" height="10" rx="1" fill="#FFA000"/>
+      <!-- Cube face details -->
+      <circle cx="12" cy="25" r="1.5" fill="#FF6F00"/>
+      <circle cx="19" cy="25" r="1.5" fill="#FF6F00"/>
+      <path d="M12 29 Q15.5 31.5 19 29" stroke="#FF6F00" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <!-- Spikes / obstacles -->
+      <polygon points="26,34 29,20 32,34" fill="#ffffff" opacity="0.9"/>
+      <polygon points="31,34 34,22 37,34" fill="#ffffff" opacity="0.9"/>
+      <polygon points="36,34 38,24 40,34" fill="#ffffff" opacity="0.7"/>
+      <!-- Stars top -->
+      <circle cx="8" cy="8" r="1.5" fill="#FFD700" opacity="0.9"/>
+      <circle cx="40" cy="8" r="1.5" fill="#FFD700" opacity="0.9"/>
+      <circle cx="24" cy="6" r="2" fill="#FFD700"/>
+      <!-- Border glow -->
+      <rect x="2" y="2" width="44" height="44" rx="10" fill="none" stroke="rgba(255,200,0,0.5)" stroke-width="1.5"/>
+    </svg>
+    <span>geometrydash.exe</span>
+  </div>
+  <div class="icon" ondblclick="openWindow('feedback-win')">
+    <svg class="icon-svg" viewBox="0 0 48 48"><circle cx="18" cy="20" r="11" fill="#e040a0"/><circle cx="30" cy="20" r="11" fill="#9c27b0" opacity=".85"/><ellipse cx="24" cy="36" rx="16" ry="8" fill="#c2185b" opacity=".7"/></svg>
+    <span>Feedback</span>
+  </div>
+</div>
+
+<!-- TASKBAR -->
+<div id="taskbar">
+  <div id="taskbar-center">
+    <div class="tb-btn" id="start-btn" onclick="toggleStart(event)">
+      <svg viewBox="0 0 24 24"><rect x="2" y="2" width="9" height="9" rx="1.5" fill="#4da6ff"/><rect x="13" y="2" width="9" height="9" rx="1.5" fill="#4da6ff"/><rect x="2" y="13" width="9" height="9" rx="1.5" fill="#4da6ff"/><rect x="13" y="13" width="9" height="9" rx="1.5" fill="#4da6ff"/></svg>
+    </div>
+    <div class="tb-btn" onclick="toggleStart(event)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    </div>
+    <div class="tb-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><rect x="2" y="3" width="9" height="7" rx="1.5"/><rect x="13" y="3" width="9" height="7" rx="1.5"/><rect x="2" y="14" width="9" height="7" rx="1.5"/><rect x="13" y="14" width="9" height="7" rx="1.5"/></svg>
+    </div>
+    <div class="tb-btn" onclick="openWindow('gd-win')">
+      <!-- GD icon in taskbar -->
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="22" height="22" rx="5" fill="#e63000"/>
+        <rect x="2" y="17" width="20" height="2" rx="1" fill="#FFD700"/>
+        <rect x="3" y="10" width="7" height="7" rx="1" fill="#FFD700"/>
+        <polygon points="13,17 15,10 17,17" fill="white" opacity=".9"/>
+        <polygon points="17,17 19,11 21,17" fill="white" opacity=".8"/>
+      </svg>
+    </div>
+    <div class="tb-btn" onclick="openWindow('browser-win')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#0f4fa8"/><path d="M12 2C9.5 5 8 8 8 12s1.5 7 4 10" stroke="#90caf9" stroke-width="1.5" fill="none"/><path d="M12 2C14.5 5 16 8 16 12s-1.5 7-4 10" stroke="#90caf9" stroke-width="1.5" fill="none"/><path d="M2 12h20M4 7h16M4 17h16" stroke="#90caf9" stroke-width="1"/></svg>
+    </div>
+    <div class="tb-btn" onclick="openWindow('files-win')">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M2 6a2 2 0 012-2h5l2 2h9a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" fill="#4da6ff"/><rect x="2" y="10" width="20" height="8" rx="1.5" fill="#5bb8ff"/></svg>
+    </div>
+    <div class="tb-btn" onclick="openWindow('notepad-win')">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="2" width="14" height="20" rx="2" fill="#fffde7" stroke="#ffd54f" stroke-width="1"/><path d="M7 7h10M7 10h10M7 13h7" stroke="#ffa000" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+  </div>
+  <div id="taskbar-right">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" opacity=".7" stroke-linecap="round"><path d="M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" opacity=".7"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    <div id="clock"><div class="time" id="ct">00:00</div><div class="date" id="cd">0000/00/00</div></div>
+  </div>
+</div>
+
+<!-- START MENU -->
+<div id="start-menu">
+  <input type="text" id="start-search" placeholder="🔍  Type here to search">
+  <div class="start-section-title">Pinned</div>
+  <div class="start-apps" id="start-apps-grid"></div>
+</div>
+
+<!-- ============ GEOMETRY DASH WINDOW ============ -->
+<div class="win" id="gd-win" style="top:50px;left:80px;width:900px;height:580px;">
+  <div class="win-titlebar" data-win="gd-win">
+    <div class="win-controls">
+      <div class="win-btn close" onclick="closeWindow('gd-win');gdStop()"></div>
+      <div class="win-btn min" onclick="minWindow('gd-win');gdStop()"></div>
+      <div class="win-btn max" onclick="maxWindow('gd-win')"></div>
+    </div>
+    <div class="win-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px"><rect x="1" y="1" width="22" height="22" rx="5" fill="#e63000"/><rect x="2" y="17" width="20" height="2" rx="1" fill="#FFD700"/><rect x="3" y="10" width="7" height="7" rx="1" fill="#FFD700"/><polygon points="13,17 15,10 17,17" fill="white"/><polygon points="17,17 19,11 21,17" fill="white" opacity=".8"/></svg>
+      Geometry Dash — Stereo Madness
+    </div>
+  </div>
+  <div class="win-content" id="gd-wrap" style="position:relative;">
+    <div id="gd-canvas-wrap">
+      <canvas id="gd-canvas"></canvas>
+
+      <!-- Stars background -->
+      <div class="gd-stars" id="gd-stars"></div>
+
+      <!-- Progress bar -->
+      <div id="gd-progress-bar"><div id="gd-progress-fill"></div></div>
+
+      <!-- HUD -->
+      <div id="gd-hud">
+        <div id="gd-score">0</div>
+        <div id="gd-attempts">Attempt 1</div>
+        <div id="gd-percent">0%</div>
+      </div>
+
+      <!-- Main Menu -->
+      <div id="gd-menu">
+        <div class="gd-stars" id="menu-stars"></div>
+        <h1>Geometry Dash</h1>
+        <div class="sub">Stereo Madness · Normal Mode</div>
+        <button class="gd-btn" onclick="gdStartGame()">▶ PLAY</button>
+        <button class="gd-btn blue" onclick="showGdHelp()" style="margin-top:4px;">? HOW TO PLAY</button>
+        <div style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:20px;">SPACE / CLICK / ↑ to jump · Double-tap for double jump</div>
+      </div>
+
+      <!-- Death / Complete overlay -->
+      <div id="gd-overlay">
+        <h2 id="gd-overlay-title" style="color:#ff4444;">YOU DIED</h2>
+        <p id="gd-overlay-sub">Press SPACE or click to retry</p>
+        <button class="gd-btn" onclick="gdRetry()" style="margin-top:8px;">↺ RETRY</button>
+        <button class="gd-btn blue" onclick="gdBackToMenu()" style="margin-top:4px;">⬅ MENU</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BROWSER WINDOW -->
+<div class="win" id="browser-win" style="top:60px;left:100px;width:900px;height:600px;">
+  <div class="win-titlebar" data-win="browser-win">
+    <div class="win-controls">
+      <div class="win-btn close" onclick="closeWindow('browser-win')"></div>
+      <div class="win-btn min" onclick="minWindow('browser-win')"></div>
+      <div class="win-btn max" onclick="maxWindow('browser-win')"></div>
+    </div>
+    <div class="win-title">Microsoft Edge</div>
+  </div>
+  <div class="browser-bar">
+    <button class="bnav" onclick="browserBack()">&#8592;</button>
+    <button class="bnav" onclick="browserForward()">&#8594;</button>
+    <button class="bnav" onclick="browserRefresh()">&#8635;</button>
+    <input type="text" id="url-bar" placeholder="Search or enter address" value="edge://newtab" onkeydown="if(event.key==='Enter')navigate(this.value)">
+    <button class="bnav" onclick="navigate(document.getElementById('url-bar').value)" style="background:#4da6ff;width:auto;padding:0 10px;font-size:12px;">Go</button>
+  </div>
+  <div class="win-content" id="browser-content" style="position:relative;">
+    <div class="browser-home" id="browser-home">
+      <h2>🌐 Edge Browser</h2>
+      <p>Enter a URL above or click a quick link</p>
+      <div class="quick-links">
+        <div class="qlink" onclick="navigate('https://www.google.com/webhp?igu=1')"><div>🔍</div><span>Google</span></div>
+        <div class="qlink" onclick="navigate('https://en.m.wikipedia.org/wiki/Main_Page')"><div>📖</div><span>Wikipedia</span></div>
+        <div class="qlink" onclick="navigate('https://news.ycombinator.com')"><div>📰</div><span>HN News</span></div>
+        <div class="qlink" onclick="navigate('https://openweathermap.org')"><div>🌤️</div><span>Weather</span></div>
+        <div class="qlink" onclick="navigate('https://www.reddit.com/?isMobileWebView=1')"><div>🤖</div><span>Reddit</span></div>
+      </div>
+      <p style="margin-top:20px;font-size:11px;opacity:.3;">Some sites block embedding. Wikipedia & HN work great!</p>
+    </div>
+    <iframe id="browser-frame" style="display:none;width:100%;height:100%;border:none;"></iframe>
+  </div>
+</div>
+
+<!-- FILE EXPLORER -->
+<div class="win" id="files-win" style="top:80px;left:150px;width:750px;height:480px;">
+  <div class="win-titlebar" data-win="files-win">
+    <div class="win-controls">
+      <div class="win-btn close" onclick="closeWindow('files-win')"></div>
+      <div class="win-btn min" onclick="minWindow('files-win')"></div>
+      <div class="win-btn max" onclick="maxWindow('files-win')"></div>
+    </div>
+    <div class="win-title">📁 File Explorer</div>
+  </div>
+  <div class="win-content flex">
+    <div class="files-sidebar" id="sidebar-files">
+      <div class="sidebar-item active" onclick="loadFolder(this,'home')">🏠 Home</div>
+      <div class="sidebar-item" onclick="loadFolder(this,'desktop')">🖥️ Desktop</div>
+      <div class="sidebar-item" onclick="loadFolder(this,'documents')">📄 Documents</div>
+      <div class="sidebar-item" onclick="loadFolder(this,'downloads')">⬇️ Downloads</div>
+      <div class="sidebar-item" onclick="loadFolder(this,'pictures')">🖼️ Pictures</div>
+      <div class="sidebar-item" onclick="loadFolder(this,'music')">🎵 Music</div>
+      <div class="sidebar-item" onclick="loadFolder(this,'videos')">🎬 Videos</div>
+      <div class="sidebar-item" onclick="loadFolder(this,'trash')">🗑️ Recycle Bin</div>
+    </div>
+    <div class="files-content"><div class="file-grid" id="file-grid"></div></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="win" id="settings-win" style="top:100px;left:200px;width:700px;height:500px;">
+  <div class="win-titlebar" data-win="settings-win">
+    <div class="win-controls">
+      <div class="win-btn close" onclick="closeWindow('settings-win')"></div>
+      <div class="win-btn min" onclick="minWindow('settings-win')"></div>
+      <div class="win-btn max" onclick="maxWindow('settings-win')"></div>
+    </div>
+    <div class="win-title">⚙️ Settings</div>
+  </div>
+  <div class="win-content flex">
+    <div class="settings-sidebar">
+      <div class="sidebar-item active">System</div>
+      <div class="sidebar-item">Bluetooth &amp; devices</div>
+      <div class="sidebar-item">Network</div>
+      <div class="sidebar-item">Personalization</div>
+      <div class="sidebar-item">Apps</div>
+      <div class="sidebar-item">Accounts</div>
+      <div class="sidebar-item">Privacy &amp; security</div>
+      <div class="sidebar-item">Windows Update</div>
+    </div>
+    <div class="settings-content">
+      <div class="settings-title">System</div>
+      <div class="setting-row"><div><div class="setting-label">Dark mode</div><div class="setting-desc">Use dark theme throughout Windows</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="setting-row"><div><div class="setting-label">Notifications</div><div class="setting-desc">Show app and system notifications</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="setting-row"><div><div class="setting-label">Automatic updates</div><div class="setting-desc">Keep Windows 13 up to date</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="setting-row"><div><div class="setting-label">Bluetooth</div><div class="setting-desc">Connect wireless devices</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+      <div class="setting-row"><div><div class="setting-label">Location services</div><div class="setting-desc">Allow apps to access your location</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+      <div class="setting-row"><div><div class="setting-label">Transparency effects</div><div class="setting-desc">Enable translucent surfaces</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="win" id="about-win" style="top:120px;left:350px;width:500px;height:380px;">
+  <div class="win-titlebar" data-win="about-win">
+    <div class="win-controls">
+      <div class="win-btn close" onclick="closeWindow('about-win')"></div>
+      <div class="win-btn min" onclick="minWindow('about-win')"></div>
+      <div class="win-btn max" onclick="maxWindow('about-win')"></div>
+    </div>
+    <div class="win-title">About Windows 13</div>
+  </div>
+  <div class="win-content">
+    <div class="about-content">
+      <svg width="80" height="80" viewBox="0 0 48 48" style="margin-bottom:16px"><rect x="2" y="2" width="20" height="20" rx="3" fill="#4da6ff"/><rect x="26" y="2" width="20" height="20" rx="3" fill="#4da6ff"/><rect x="2" y="26" width="20" height="20" rx="3" fill="#4da6ff"/><rect x="26" y="26" width="20" height="20" rx="3" fill="#4da6ff"/></svg>
+      <div class="about-name">Windows 13</div>
+      <div class="about-version">Version 13.0.26001.1000 (64-bit)</div>
+      <div class="about-info">© 2026 Microsoft Corporation. All rights reserved.<br>Windows 13 Pro · Activated<br><br>Processor: Intel Core Ultra 9 285K @ 3.70GHz<br>Installed RAM: 32.0 GB<br>System type: 64-bit OS, x64-based processor</div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTEPAD -->
+<div class="win" id="notepad-win" style="top:100px;left:180px;width:600px;height:450px;">
+  <div class="win-titlebar" data-win="notepad-win">
+    <div class="win-controls">
+      <div class="win-btn close" onclick="closeWindow('notepad-win')"></div>
+      <div class="win-btn min" onclick="minWindow('notepad-win')"></div>
+      <div class="win-btn max" onclick="maxWindow('notepad-win')"></div>
+    </div>
+    <div class="win-title">📝 Notepad</div>
+  </div>
+  <div class="win-content"><textarea id="notepad-text" placeholder="Start typing...">Welcome to Windows 13 Notepad!
+</textarea></div>
+</div>
+
+<!-- FEEDBACK -->
+<div class="win" id="feedback-win" style="top:120px;left:220px;width:520px;height:420px;">
+  <div class="win-titlebar" data-win="feedback-win">
+    <div class="win-controls">
+      <div class="win-btn close" onclick="closeWindow('feedback-win')"></div>
+      <div class="win-btn min" onclick="minWindow('feedback-win')"></div>
+      <div class="win-btn max" onclick="maxWindow('feedback-win')"></div>
+    </div>
+    <div class="win-title">💬 Feedback Hub</div>
+  </div>
+  <div class="win-content">
+    <div class="feedback-content">
+      <h3>Share your feedback with Microsoft</h3>
+      <p style="opacity:.6;font-size:13px;margin-bottom:16px;">Help improve Windows 13. Your feedback matters!</p>
+      <textarea placeholder="What would you like to tell us?"></textarea>
+      <button onclick="showNotif('✅ Thank you! Your feedback has been submitted.')">Submit Feedback</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div id="ctx-menu">
+  <div class="ctx-item" onclick="hideCtx()">🔄 Refresh</div>
+  <div class="ctx-item" onclick="hideCtx()">📐 View</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="openWindow('settings-win');hideCtx()">⚙️ Display settings</div>
+  <div class="ctx-item" onclick="openWindow('settings-win');hideCtx()">🎨 Personalize</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="openWindow('about-win');hideCtx()">ℹ️ About Windows 13</div>
+</div>
+
+<div id="notif"></div>
+</div><!-- end desktop -->
+
+<script>
+// ─── CLOCK ───────────────────────────────────────────────────────────
+function tick() {
+  const n=new Date(), p=v=>String(v).padStart(2,'0');
+  document.getElementById('ct').textContent=p(n.getHours())+':'+p(n.getMinutes());
+  document.getElementById('cd').textContent=n.getFullYear()+'/'+p(n.getMonth()+1)+'/'+p(n.getDate());
+}
+tick(); setInterval(tick,1000);
+
+// ─── START MENU ───────────────────────────────────────────────────────
+const GD_ICON_MINI = `<svg width="36" height="36" viewBox="0 0 48 48"><rect x="2" y="2" width="44" height="44" rx="10" fill="#e63000"/><rect x="4" y="34" width="40" height="3" rx="1.5" fill="#FFD700"/><rect x="6" y="20" width="14" height="14" rx="2" fill="#FFD700"/><polygon points="26,37 29,22 32,37" fill="white"/><polygon points="32,37 35,24 38,37" fill="white" opacity=".8"/></svg>`;
+
+const startApps = [
+  {icon:`<svg width="36" height="36" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="#0f4fa8"/><path d="M24 3C18 9 15 16 15 24s3 15 9 21" stroke="#90caf9" stroke-width="2.5" fill="none"/><path d="M24 3C30 9 33 16 33 24s-3 15-9 21" stroke="#90caf9" stroke-width="2.5" fill="none"/><path d="M3 24h42M6 14h36M6 34h36" stroke="#90caf9" stroke-width="1.8"/></svg>`,label:'Edge',win:'browser-win'},
+  {icon:`<svg width="36" height="36" viewBox="0 0 48 48"><path d="M4 12a4 4 0 014-4h10l4 4h18a4 4 0 014 4v20a4 4 0 01-4 4H8a4 4 0 01-4-4V12z" fill="#4da6ff"/><rect x="4" y="20" width="40" height="20" rx="3" fill="#5bb8ff"/></svg>`,label:'Files',win:'files-win'},
+  {icon:`<svg width="36" height="36" viewBox="0 0 48 48"><circle cx="24" cy="24" r="8" fill="#9090bb" stroke="#bbbbdd" stroke-width="2"/><path d="M24 4v6M24 38v6M4 24h6M38 24h6" stroke="#bbbbdd" stroke-width="3" stroke-linecap="round"/></svg>`,label:'Settings',win:'settings-win'},
+  {icon:`<svg width="36" height="36" viewBox="0 0 48 48"><rect x="6" y="2" width="28" height="40" rx="3" fill="#fffde7" stroke="#ffd54f" stroke-width="2"/><path d="M12 14h20M12 20h20M12 26h14" stroke="#ffa000" stroke-width="2.5" stroke-linecap="round"/></svg>`,label:'Notepad',win:'notepad-win'},
+  {icon:GD_ICON_MINI, label:'GeomsaDash',win:'gd-win'},
+  {icon:`<svg width="36" height="36" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="#3377dd"/><rect x="21" y="20" width="6" height="14" rx="2" fill="white"/><circle cx="24" cy="14" r="3" fill="white"/></svg>`,label:'About',win:'about-win'},
+];
+document.getElementById('start-apps-grid').innerHTML=startApps.map(a=>
+  `<div class="start-app" onclick="openWindow('${a.win}');closeStart()">${a.icon}<span>${a.label}</span></div>`
+).join('');
+
+function toggleStart(e){e&&e.stopPropagation();document.getElementById('start-menu').classList.toggle('visible');}
+function closeStart(){document.getElementById('start-menu').classList.remove('visible');}
+
+// ─── WINDOW MANAGEMENT ───────────────────────────────────────────────
+let zTop=200;
+function openWindow(id){const w=document.getElementById(id);w.classList.add('visible');front(w);}
+function closeWindow(id){document.getElementById(id).classList.remove('visible');}
+function minWindow(id){document.getElementById(id).classList.remove('visible');}
+function maxWindow(id){
+  const w=document.getElementById(id);
+  if(w._max){w.style.cssText=w._prev;w._max=false;}
+  else{w._prev=w.style.cssText;w.style.top='0';w.style.left='0';w.style.width='100vw';w.style.height='calc(100vh - 52px)';w.style.borderRadius='0';w._max=true;
+    if(id==='gd-win') setTimeout(gdResizeCanvas,50);
+  }
+  front(w);
+}
+function front(w){w.style.zIndex=++zTop;}
+
+// DRAG
+document.querySelectorAll('.win-titlebar').forEach(bar=>{
+  let drag=false,ox,oy;
+  bar.addEventListener('mousedown',e=>{
+    if(e.target.classList.contains('win-btn')) return;
+    drag=true; const w=bar.parentElement; front(w);
+    const r=w.getBoundingClientRect(); ox=e.clientX-r.left; oy=e.clientY-r.top;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove',e=>{if(!drag)return;const w=bar.parentElement;w.style.left=(e.clientX-ox)+'px';w.style.top=(e.clientY-oy)+'px';});
+  document.addEventListener('mouseup',()=>drag=false);
+});
+document.querySelectorAll('.win').forEach(w=>w.addEventListener('mousedown',()=>front(w)));
+
+// ─── BROWSER ──────────────────────────────────────────────────────────
+const hist=[];let hidx=-1;
+function navigate(url){
+  if(!url) return;
+  let u=url.trim();
+  if(u==='edge://newtab'){document.getElementById('url-bar').value=u;document.getElementById('browser-home').style.display='flex';document.getElementById('browser-frame').style.display='none';return;}
+  if(!u.startsWith('http')) u=u.includes('.')&&!u.includes(' ')?'https://'+u:'https://www.google.com/search?q='+encodeURIComponent(u)+'&igu=1';
+  document.getElementById('url-bar').value=u;
+  document.getElementById('browser-home').style.display='none';
+  const f=document.getElementById('browser-frame');f.style.display='block';f.src=u;
+  hist.splice(hidx+1);hist.push(u);hidx=hist.length-1;
+}
+function browserBack(){if(hidx>0){hidx--;loadHist();}}
+function browserForward(){if(hidx<hist.length-1){hidx++;loadHist();}}
+function browserRefresh(){const f=document.getElementById('browser-frame');if(f.style.display!=='none')f.src=f.src;}
+function loadHist(){const u=hist[hidx];document.getElementById('url-bar').value=u;document.getElementById('browser-home').style.display='none';const f=document.getElementById('browser-frame');f.style.display='block';f.src=u;}
+
+// ─── FILES ────────────────────────────────────────────────────────────
+// GD SVG icon as data URI for file grid
+const gdSvgFile = `<svg width="34" height="34" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="44" rx="10" fill="#e63000"/><rect x="4" y="34" width="40" height="3" rx="1.5" fill="#FFD700"/><rect x="6" y="20" width="14" height="14" rx="2" fill="#FFD700"/><polygon points="26,37 29,22 32,37" fill="white"/><polygon points="32,37 35,24 38,37" fill="white" opacity=".8"/><circle cx="40" cy="8" r="3" fill="#FFD700"/></svg>`;
+
+const folders = {
+  home:[{e:'🖥️',n:'Desktop'},{e:'📄',n:'Documents'},{e:'⬇️',n:'Downloads'},{e:'🖼️',n:'Pictures'},{e:'🎵',n:'Music'},{e:'🎬',n:'Videos'},{e:'💾',n:'Local Disk (C:)'},{e:'💿',n:'DVD Drive (D:)'}],
+  desktop:[{e:'📂',n:'Projects'},{e:'🗒️',n:'notes.txt'},{e:'🖼️',n:'screenshot.png'},{e:'📊',n:'report.xlsx'}],
+  documents:[{e:'📄',n:'Resume.docx'},{e:'📑',n:'Contract.pdf'},{e:'📊',n:'Budget.xlsx'},{e:'📂',n:'Work'},{e:'📂',n:'Personal'}],
+  downloads:[{e:'📦',n:'setup.exe'},{e:'🗜️',n:'archive.zip'},{e:'🖼️',n:'photo.jpg'},{e:'🎵',n:'song.mp3'},{gd:true,n:'geometrydash.exe'},{e:'📄',n:'document.pdf'}],
+  pictures:[{e:'🖼️',n:'vacation.jpg'},{e:'🖼️',n:'family.png'},{e:'📂',n:'Screenshots'},{e:'📂',n:'Wallpapers'}],
+  music:[{e:'🎵',n:'Favorites'},{e:'🎶',n:'Playlists'},{e:'💿',n:'Album 1'}],
+  videos:[{e:'🎬',n:'Movies'},{e:'📹',n:'Recordings'}],
+  trash:[{e:'🗑️',n:'Recycle Bin (empty)'}]
+};
+function loadFolder(el,name){
+  document.querySelectorAll('#sidebar-files .sidebar-item').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('file-grid').innerHTML=(folders[name]||[]).map(f=>{
+    if(f.gd) return `<div class="file-item" ondblclick="openWindow('gd-win')" title="Double-click to play!"><div class="fi">${gdSvgFile}</div><span>${f.n}</span></div>`;
+    return `<div class="file-item"><div class="fi">${f.e}</div><span>${f.n}</span></div>`;
+  }).join('');
+}
+loadFolder(document.querySelector('#sidebar-files .sidebar-item'),'home');
+
+// ─── CONTEXT MENU ─────────────────────────────────────────────────────
+document.getElementById('desktop').addEventListener('contextmenu',e=>{
+  if(e.target.closest('.win')||e.target.closest('.icon')) return;
+  e.preventDefault();
+  const m=document.getElementById('ctx-menu');
+  m.style.display='block';
+  m.style.left=Math.min(e.clientX,window.innerWidth-200)+'px';
+  m.style.top=Math.min(e.clientY,window.innerHeight-200)+'px';
+});
+function hideCtx(){document.getElementById('ctx-menu').style.display='none';}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#ctx-menu')) hideCtx();
+  if(!e.target.closest('#start-menu')&&!e.target.closest('#start-btn')) closeStart();
+});
+
+// ─── NOTIFICATION ────────────────────────────────────────────────────
+let notifTimer;
+function showNotif(msg){
+  const n=document.getElementById('notif');
+  n.textContent=msg; n.classList.add('show');
+  clearTimeout(notifTimer); notifTimer=setTimeout(()=>n.classList.remove('show'),3500);
+}
+
+// ─── GD HELP ──────────────────────────────────────────────────────────
+function showGdHelp(){
+  showNotif('SPACE / CLICK / ↑ = Jump  |  Double jump available!  |  Avoid spikes & pits!');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ████████  GEOMETRY DASH GAME ENGINE  ████████
+// ═══════════════════════════════════════════════════════════════════════
+const canvas = document.getElementById('gd-canvas');
+const ctx2 = canvas.getContext('2d');
+
+// Generate starfield
+function makeStars(container, count) {
+  container.innerHTML = '';
+  for(let i=0;i<count;i++){
+    const s=document.createElement('div');
+    s.className='gd-star';
+    const size=Math.random()*3+1;
+    s.style.cssText=`width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${(Math.random()*3+1).toFixed(1)}s;animation-delay:${(Math.random()*3).toFixed(1)}s`;
+    container.appendChild(s);
+  }
+}
+makeStars(document.getElementById('gd-stars'),80);
+makeStars(document.getElementById('menu-stars'),60);
+
+// Game state
+let GD = {
+  running: false,
+  attempt: 1,
+  score: 0,
+  frame: 0,
+  animId: null,
+  // Player
+  px: 100, py: 0,
+  vy: 0,
+  onGround: false,
+  jumping: false,
+  jumpCount: 0,
+  maxJumps: 2,
+  rotation: 0,
+  dead: false,
+  // Camera / level
+  camX: 0,
+  speed: 5,
+  levelLength: 6000,
+  // Colors
+  skyColors: [
+    ['#1a0a3e','#2a0a5a'],
+    ['#0a1a4a','#0a2a6a'],
+    ['#1a2a0a','#2a4a0a'],
+    ['#3a0a0a','#5a1a1a'],
+  ],
+  colorIdx: 0,
+  colorTimer: 0,
+  particles: [],
+  trail: [],
+};
+
+const GROUND_Y_RATIO = 0.78; // ground at 78% height
+const CUBE_SIZE = 38;
+const GRAVITY = 0.65;
+const JUMP_FORCE = -13.5;
+
+// ─── LEVEL GENERATION ─────────────────────────────────────────────────
+function generateLevel(seed) {
+  const rng = (()=>{let s=seed||1234;return ()=>{s=(s*16807+0)%2147483647;return (s-1)/2147483646;};})();
+  const objects = [];
+  let x = 600;
+  const patterns = [
+    // single spike
+    ()=>{objects.push({type:'spike',x,y:0,w:30,h:35});x+=120;},
+    // double spike
+    ()=>{objects.push({type:'spike',x,y:0,w:30,h:35},{type:'spike',x:x+40,y:0,w:30,h:35});x+=180;},
+    // triple spike
+    ()=>{for(let i=0;i<3;i++)objects.push({type:'spike',x:x+i*38,y:0,w:30,h:35});x+=220;},
+    // platform + spike
+    ()=>{objects.push({type:'platform',x,y:-80,w:80,h:20},{type:'spike',x:x+90,y:0,w:30,h:35});x+=200;},
+    // pit (gap in ground)
+    ()=>{objects.push({type:'pit',x,w:80});x+=200;},
+    // stair up
+    ()=>{objects.push({type:'block',x,y:-44,w:44,h:44},{type:'block',x:x+48,y:-88,w:44,h:88});x+=200;},
+    // block obstacle
+    ()=>{objects.push({type:'block',x,y:-44,w:44,h:44});x+=150;},
+    // ceiling spike
+    ()=>{objects.push({type:'ceiling_spike',x,w:30,h:35});x+=130;},
+    // two platforms
+    ()=>{objects.push({type:'platform',x,y:-100,w:100,h:16},{type:'platform',x:x+140,y:-70,w:80,h:16});x+=280;},
+  ];
+
+  while(x < GD.levelLength - 400) {
+    const gap = 60 + rng()*80;
+    x += gap;
+    const p = patterns[Math.floor(rng()*patterns.length)];
+    p();
+  }
+  // End gate
+  objects.push({type:'end',x:GD.levelLength-100});
+  return objects;
+}
+
+let level = [];
+
+// ─── RESIZE CANVAS ────────────────────────────────────────────────────
+function gdResizeCanvas() {
+  const wrap = document.getElementById('gd-wrap');
+  const rect = wrap.getBoundingClientRect();
+  canvas.width = rect.width || 900;
+  canvas.height = rect.height - 38 || 542;
+}
+
+// ─── GAME START / RETRY ───────────────────────────────────────────────
+function gdStartGame() {
+  document.getElementById('gd-menu').style.display='none';
+  document.getElementById('gd-overlay').classList.remove('show');
+  gdResizeCanvas();
+  level = generateLevel(42);
+  gdReset();
+  GD.running = true;
+  bindGdInput();
+  gdLoop();
+}
+function gdRetry() {
+  document.getElementById('gd-overlay').classList.remove('show');
+  GD.attempt++;
+  gdReset();
+  GD.running = true;
+  gdLoop();
+}
+function gdBackToMenu() {
+  GD.running = false;
+  cancelAnimationFrame(GD.animId);
+  document.getElementById('gd-overlay').classList.remove('show');
+  document.getElementById('gd-menu').style.display='flex';
+}
+function gdStop() { GD.running=false; cancelAnimationFrame(GD.animId); }
+
+function gdReset() {
+  GD.camX=0; GD.speed=5; GD.score=0; GD.frame=0;
+  GD.px=100; GD.py=0; GD.vy=0; GD.rotation=0;
+  GD.onGround=false; GD.jumping=false; GD.jumpCount=0; GD.dead=false;
+  GD.particles=[]; GD.trail=[]; GD.colorTimer=0; GD.colorIdx=0;
+}
+
+// ─── INPUT ─────────────────────────────────────────────────────────────
+let gdInputBound = false;
+function bindGdInput() {
+  if(gdInputBound) return; gdInputBound=true;
+  document.addEventListener('keydown', e=>{
+    if(!GD.running) return;
+    if(e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW') { e.preventDefault(); gdJump(); }
+  });
+  canvas.addEventListener('click', ()=>{ if(GD.running) gdJump(); });
+  canvas.addEventListener('touchstart', e=>{ e.preventDefault(); if(GD.running) gdJump(); },{passive:false});
+}
+function gdJump() {
+  if(GD.dead) return;
+  if(GD.jumpCount < GD.maxJumps) {
+    GD.vy = JUMP_FORCE;
+    GD.jumpCount++;
+    GD.onGround=false;
+    spawnJumpParticles();
+  }
+}
+
+// ─── PARTICLES ─────────────────────────────────────────────────────────
+function spawnJumpParticles() {
+  const groundY = canvas.height * GROUND_Y_RATIO;
+  for(let i=0;i<8;i++) {
+    GD.particles.push({
+      x: GD.px + CUBE_SIZE/2, y: groundY,
+      vx: (Math.random()-0.5)*4, vy: -Math.random()*4-1,
+      life: 1, color: `hsl(${Math.random()*60+30},100%,60%)`,
+      size: Math.random()*6+3
+    });
+  }
+}
+function spawnDeathParticles() {
+  const groundY = canvas.height * GROUND_Y_RATIO;
+  for(let i=0;i<20;i++) {
+    GD.particles.push({
+      x: GD.px + CUBE_SIZE/2, y: groundY - CUBE_SIZE/2,
+      vx: (Math.random()-0.5)*10, vy: -Math.random()*8-2,
+      life: 1, color: `hsl(${Math.random()*60},100%,60%)`,
+      size: Math.random()*8+4
+    });
+  }
+}
+
+// ─── DRAWING HELPERS ───────────────────────────────────────────────────
+function drawCube(x, y, size, rot, color='#FFD700', faceColor='#FFA000') {
+  ctx2.save();
+  ctx2.translate(x + size/2, y + size/2);
+  ctx2.rotate(rot);
+  // Shadow
+  ctx2.fillStyle='rgba(0,0,0,0.3)';
+  ctx2.fillRect(size/2-size*0.05, size/2-size*0.05, size, size);
+  // Main cube
+  ctx2.fillStyle=color;
+  ctx2.fillRect(-size/2,-size/2,size,size);
+  // Face design
+  ctx2.fillStyle=faceColor;
+  const p=size*0.15;
+  ctx2.fillRect(-size/2+p,-size/2+p,size-p*2,size-p*2);
+  // Eyes
+  ctx2.fillStyle='rgba(0,0,0,0.6)';
+  ctx2.beginPath(); ctx2.arc(-size/5,-size/6,size*0.1,0,Math.PI*2); ctx2.fill();
+  ctx2.beginPath(); ctx2.arc(size/5,-size/6,size*0.1,0,Math.PI*2); ctx2.fill();
+  // Smile
+  ctx2.strokeStyle='rgba(0,0,0,0.6)'; ctx2.lineWidth=2; ctx2.lineCap='round';
+  ctx2.beginPath(); ctx2.arc(0, size*0.05, size*0.15, 0.2, Math.PI-0.2); ctx2.stroke();
+  // Border
+  ctx2.strokeStyle='rgba(255,255,255,0.3)'; ctx2.lineWidth=1.5;
+  ctx2.strokeRect(-size/2,-size/2,size,size);
+  ctx2.restore();
+}
+
+function drawSpike(x, y, w, h, color='#ffffff') {
+  ctx2.save();
+  ctx2.fillStyle=color;
+  ctx2.beginPath();
+  ctx2.moveTo(x, y);
+  ctx2.lineTo(x+w/2, y-h);
+  ctx2.lineTo(x+w, y);
+  ctx2.closePath();
+  ctx2.fill();
+  // Highlight
+  ctx2.fillStyle='rgba(255,255,255,0.3)';
+  ctx2.beginPath();
+  ctx2.moveTo(x+w/2, y-h);
+  ctx2.lineTo(x+w/2-4, y-h+12);
+  ctx2.lineTo(x+w/2, y-h+6);
+  ctx2.closePath();
+  ctx2.fill();
+  ctx2.restore();
+}
+
+function drawBlock(x, y, w, h, color='#4488ff') {
+  ctx2.save();
+  ctx2.fillStyle=color;
+  ctx2.fillRect(x,y,w,h);
+  ctx2.fillStyle='rgba(255,255,255,0.15)';
+  ctx2.fillRect(x,y,w,4);
+  ctx2.fillRect(x,y,4,h);
+  ctx2.strokeStyle='rgba(255,255,255,0.2)';
+  ctx2.lineWidth=1;
+  ctx2.strokeRect(x,y,w,h);
+  // Grid lines
+  ctx2.strokeStyle='rgba(0,0,0,0.2)';
+  for(let gx=x;gx<x+w;gx+=22){ctx2.beginPath();ctx2.moveTo(gx,y);ctx2.lineTo(gx,y+h);ctx2.stroke();}
+  for(let gy=y;gy<y+h;gy+=22){ctx2.beginPath();ctx2.moveTo(x,gy);ctx2.lineTo(x+w,gy);ctx2.stroke();}
+  ctx2.restore();
+}
+
+// ─── MAIN GAME LOOP ────────────────────────────────────────────────────
+function gdLoop() {
+  if(!GD.running) return;
+  GD.animId = requestAnimationFrame(gdLoop);
+  gdUpdate();
+  gdDraw();
+}
+
+function gdUpdate() {
+  if(GD.dead) return;
+  GD.frame++;
+  const W=canvas.width, H=canvas.height;
+  const groundY = H * GROUND_Y_RATIO;
+
+  // Speed ramp
+  GD.speed = 5 + (GD.camX / GD.levelLength) * 3;
+
+  // Camera
+  GD.camX += GD.speed;
+
+  // Gravity
+  GD.vy += GRAVITY;
+  GD.py += GD.vy;
+
+  // Color cycling
+  GD.colorTimer++;
+  if(GD.colorTimer > 200) { GD.colorIdx=(GD.colorIdx+1)%GD.skyColors.length; GD.colorTimer=0; }
+
+  // Ground collision
+  if(GD.py >= 0) {
+    GD.py=0; GD.vy=0; GD.onGround=true; GD.jumpCount=0;
+  }
+
+  // Rotation
+  if(!GD.onGround) GD.rotation += 0.12;
+  else GD.rotation = Math.round(GD.rotation/(Math.PI/2))*(Math.PI/2);
+
+  // Trail
+  GD.trail.push({x:GD.px+CUBE_SIZE/2, y:groundY+GD.py-CUBE_SIZE/2, life:1});
+  if(GD.trail.length>20) GD.trail.shift();
+  GD.trail.forEach(t=>t.life-=0.06);
+
+  // Score & percent
+  GD.score = Math.floor(GD.camX / GD.levelLength * 100);
+  const pct = Math.min(100, GD.score);
+  document.getElementById('gd-score').textContent = GD.score*10;
+  document.getElementById('gd-percent').textContent = pct+'%';
+  document.getElementById('gd-attempts').textContent = 'Attempt '+GD.attempt;
+  document.getElementById('gd-progress-fill').style.width = pct+'%';
+
+  // Particle update
+  GD.particles = GD.particles.filter(p=>{
+    p.x+=p.vx; p.y+=p.vy; p.vy+=0.2; p.life-=0.04;
+    return p.life>0;
+  });
+
+  // Collision detection
+  const playerLeft = GD.px;
+  const playerRight = GD.px + CUBE_SIZE;
+  const playerTop = groundY + GD.py - CUBE_SIZE;
+  const playerBottom = groundY + GD.py;
+
+  for(const obj of level) {
+    const ox = obj.x - GD.camX;
+
+    if(obj.type === 'spike') {
+      const sx=ox, sw=obj.w, sy=groundY-obj.h, sh=obj.h;
+      if(playerRight>sx+4 && playerLeft<sx+sw-4 && playerBottom>sy+8 && playerTop<sy+sh) {
+        gdDie(); return;
+      }
+    }
+    if(obj.type === 'ceiling_spike') {
+      const sx=ox, sw=obj.w, sy=0, sh=obj.h;
+      if(playerRight>sx+2 && playerLeft<sx+sw-2 && playerTop<sy+sh-4 && playerBottom>sy) {
+        gdDie(); return;
+      }
+    }
+    if(obj.type === 'block') {
+      const bx=ox, by=groundY+obj.y, bw=obj.w, bh=obj.h;
+      if(playerRight>bx+2 && playerLeft<bx+bw-2 && playerBottom>by && playerTop<by+bh) {
+        if(GD.vy >= 0 && playerBottom <= by + 8 && playerTop < by) {
+          GD.py = by - groundY;
+          GD.vy=0; GD.onGround=true; GD.jumpCount=0; GD.rotation=Math.round(GD.rotation/(Math.PI/2))*(Math.PI/2);
+        } else {
+          gdDie(); return;
+        }
+      }
+    }
+    if(obj.type === 'pit') {
+      const px2=ox, pw=obj.w;
+      if(playerRight>px2+4 && playerLeft<px2+pw-4 && playerBottom>=groundY && GD.py>=0) {
+        gdDie(); return;
+      }
+    }
+    if(obj.type === 'platform') {
+      const plx=ox,ply=groundY+obj.y,plw=obj.w,plh=obj.h;
+      if(playerRight>plx+2 && playerLeft<plx+plw-2 && GD.vy>=0 && playerBottom>ply && playerBottom<ply+plh+10 && playerTop<ply) {
+        GD.py = ply - groundY;
+        GD.vy=0; GD.onGround=true; GD.jumpCount=0;
+      }
+    }
+    if(obj.type === 'end') {
+      if(GD.px + CUBE_SIZE/2 > ox) { gdWin(); return; }
+    }
+  }
+
+  // Fell off screen
+  if(groundY + GD.py - CUBE_SIZE > H + 20) { gdDie(); return; }
+}
+
+function gdDie() {
+  GD.dead = true;
+  GD.running = false;
+  spawnDeathParticles();
+  gdDraw();
+  // Draw death particles one more frame
+  GD.particles.forEach(p=>{
+    ctx2.save(); ctx2.globalAlpha=p.life;
+    ctx2.fillStyle=p.color;
+    ctx2.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);
+    ctx2.restore();
+  });
+  setTimeout(()=>{
+    const ov=document.getElementById('gd-overlay');
+    document.getElementById('gd-overlay-title').style.color='#ff4444';
+    document.getElementById('gd-overlay-title').textContent='YOU DIED';
+    document.getElementById('gd-overlay-sub').textContent=`${Math.min(100,GD.score)}% complete · Press RETRY`;
+    ov.classList.add('show');
+  }, 400);
+}
+
+function gdWin() {
+  GD.running=false;
+  setTimeout(()=>{
+    const ov=document.getElementById('gd-overlay');
+    document.getElementById('gd-overlay-title').style.color='#FFD700';
+    document.getElementById('gd-overlay-title').textContent='LEVEL COMPLETE!';
+    document.getElementById('gd-overlay-sub').textContent='100% · You beat Stereo Madness! 🎉';
+    ov.classList.add('show');
+  }, 300);
+}
+
+// ─── DRAW ─────────────────────────────────────────────────────────────
+function gdDraw() {
+  const W=canvas.width, H=canvas.height;
+  const groundY = H * GROUND_Y_RATIO;
+
+  // Sky gradient (animate colors)
+  const colors = GD.skyColors[GD.colorIdx];
+  const nextColors = GD.skyColors[(GD.colorIdx+1)%GD.skyColors.length];
+  const t = GD.colorTimer/200;
+  const grad = ctx2.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0, lerpColor(colors[0],nextColors[0],t));
+  grad.addColorStop(1, lerpColor(colors[1],nextColors[1],t));
+  ctx2.fillStyle=grad; ctx2.fillRect(0,0,W,H);
+
+  // Background grid lines (parallax)
+  ctx2.strokeStyle='rgba(255,255,255,0.04)'; ctx2.lineWidth=1;
+  const gridOff = (GD.camX*0.3)%40;
+  for(let x=-gridOff;x<W;x+=40){ctx2.beginPath();ctx2.moveTo(x,0);ctx2.lineTo(x,groundY);ctx2.stroke();}
+  for(let y=0;y<groundY;y+=40){ctx2.beginPath();ctx2.moveTo(0,y);ctx2.lineTo(W,y);ctx2.stroke();}
+
+  // Far background buildings (parallax)
+  ctx2.fillStyle='rgba(0,0,0,0.3)';
+  for(let i=0;i<12;i++){
+    const bx=(i*130 - (GD.camX*0.15)%130 + i*17)%W;
+    const bh=60+((i*37)%100);
+    const bw=40+((i*23)%50);
+    ctx2.fillRect(bx,groundY-bh,bw,bh);
+  }
+
+  // Trail
+  GD.trail.forEach((t,i)=>{
+    ctx2.save();
+    ctx2.globalAlpha=t.life*0.4;
+    const sz=CUBE_SIZE*(0.3+t.life*0.5);
+    ctx2.fillStyle=`hsl(${40+i*3},100%,60%)`;
+    ctx2.fillRect(t.x-sz/2,t.y-sz/2+CUBE_SIZE/2,sz,sz);
+    ctx2.restore();
+  });
+
+  // ─── LEVEL OBJECTS ─────────────────────────────────────────────────
+  for(const obj of level) {
+    const ox = obj.x - GD.camX;
+    if(ox > W+100 || ox < -200) continue;
+
+    if(obj.type==='spike') {
+      const cols=['#ffffff','#ddddff','#aaddff'];
+      drawSpike(ox, groundY, obj.w, obj.h, cols[Math.floor((obj.x/100)%cols.length)]);
+    }
+    if(obj.type==='ceiling_spike') {
+      ctx2.save(); ctx2.translate(ox+obj.w/2, obj.h/2); ctx2.rotate(Math.PI);
+      drawSpike(-obj.w/2, -obj.h/2, obj.w, obj.h, '#ffaaaa');
+      ctx2.restore();
+    }
+    if(obj.type==='block') {
+      const colors=['#3355cc','#2244bb','#4466dd'];
+      drawBlock(ox, groundY+obj.y, obj.w, obj.h, colors[Math.floor((obj.x/80)%colors.length)]);
+    }
+    if(obj.type==='platform') {
+      drawBlock(ox, groundY+obj.y, obj.w, obj.h, '#338833');
+    }
+    if(obj.type==='pit') {
+      // Darken ground gap
+      ctx2.save();
+      ctx2.fillStyle='rgba(0,0,0,0.8)';
+      ctx2.fillRect(ox, groundY, obj.w, H-groundY+20);
+      ctx2.restore();
+    }
+    if(obj.type==='end') {
+      ctx2.save();
+      const grd=ctx2.createLinearGradient(ox,0,ox+30,0);
+      grd.addColorStop(0,'rgba(255,215,0,0)');
+      grd.addColorStop(1,'rgba(255,215,0,0.8)');
+      ctx2.fillStyle=grd; ctx2.fillRect(ox,0,30,H);
+      ctx2.fillStyle='#FFD700'; ctx2.font='bold 14px Arial';
+      ctx2.fillText('FINISH',ox-10,groundY-20);
+      ctx2.restore();
+    }
+  }
+
+  // ─── GROUND ─────────────────────────────────────────────────────────
+  // Ground base
+  const groundGrad = ctx2.createLinearGradient(0,groundY,0,H);
+  groundGrad.addColorStop(0,'#1a5e1a');
+  groundGrad.addColorStop(0.08,'#1a7a1a');
+  groundGrad.addColorStop(1,'#0a2a0a');
+  ctx2.fillStyle=groundGrad; ctx2.fillRect(0,groundY,W,H-groundY);
+
+  // Ground top line
+  ctx2.fillStyle='#4CAF50'; ctx2.fillRect(0,groundY,W,4);
+  ctx2.fillStyle='rgba(255,255,255,0.3)'; ctx2.fillRect(0,groundY,W,1.5);
+
+  // Ground grid
+  ctx2.strokeStyle='rgba(0,80,0,0.6)'; ctx2.lineWidth=1;
+  const gOff=(GD.camX%44);
+  for(let x=-gOff;x<W;x+=44){ctx2.beginPath();ctx2.moveTo(x,groundY);ctx2.lineTo(x,H);ctx2.stroke();}
+  for(let y=groundY+22;y<H;y+=22){ctx2.beginPath();ctx2.moveTo(0,y);ctx2.lineTo(W,y);ctx2.stroke();}
+
+  // ─── PLAYER ─────────────────────────────────────────────────────────
+  if(!GD.dead) {
+    const playerY = groundY + GD.py - CUBE_SIZE;
+    // Glow effect when in air
+    if(!GD.onGround) {
+      ctx2.save();
+      ctx2.shadowColor='#FFD700'; ctx2.shadowBlur=20;
+      drawCube(GD.px, playerY, CUBE_SIZE, GD.rotation);
+      ctx2.restore();
+    } else {
+      drawCube(GD.px, playerY, CUBE_SIZE, GD.rotation);
+    }
+  }
+
+  // ─── PARTICLES ──────────────────────────────────────────────────────
+  GD.particles.forEach(p=>{
+    ctx2.save(); ctx2.globalAlpha=p.life;
+    ctx2.fillStyle=p.color; ctx2.shadowColor=p.color; ctx2.shadowBlur=10;
+    ctx2.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);
+    ctx2.restore();
+  });
+}
+
+// ─── COLOR LERP ───────────────────────────────────────────────────────
+function lerpColor(a, b, t) {
+  const ah=parseInt(a.slice(1),16), bh=parseInt(b.slice(1),16);
+  const ar=(ah>>16)&0xff, ag=(ah>>8)&0xff, ab_=ah&0xff;
+  const br=(bh>>16)&0xff, bg=(bh>>8)&0xff, bb_=bh&0xff;
+  const rr=Math.round(ar+(br-ar)*t), rg=Math.round(ag+(bg-ag)*t), rb_=Math.round(ab_+(bb_-ab_)*t);
+  return '#'+((rr<<16)|(rg<<8)|rb_).toString(16).padStart(6,'0');
+}
+
+// Resize on window change
+window.addEventListener('resize', ()=>{ if(GD.running) gdResizeCanvas(); });
+
+// ─── GLOBAL CLICK/KEY HANDLER (for retry overlay) ────────────────────
+document.addEventListener('keydown', e=>{
+  if(e.code==='Space' && document.getElementById('gd-overlay').classList.contains('show')) {
+    e.preventDefault(); gdRetry();
+  }
+});
+</script>
+</body>
+</html>
